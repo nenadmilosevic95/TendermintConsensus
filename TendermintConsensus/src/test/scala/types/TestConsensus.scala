@@ -63,4 +63,19 @@ class TestConsensus {
     assertTrue(result)
   }
 
+  @Test def eventTimeoutPropose {
+    val height = 5
+    val round = 4
+    val event = TimeoutPropose(height, round)
+    val state = State(height, round, RoundStepPropose, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _), Some(MessageVote(_, _, None, Prevote)), _) => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
 }
