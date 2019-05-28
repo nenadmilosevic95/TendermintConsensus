@@ -1,6 +1,7 @@
 package main.scala.types
 
 trait Event
+trait Timeout extends Event
 
 abstract class HeightAndRound(
   height: Long,
@@ -32,7 +33,7 @@ case class Majority23PrecommitBlock(
 
 case class Majority23PrevotesAny(height: Long, round: Int) extends HeightAndRound(height, round) with Event
 case class Majority23PrecommitAny(height: Long, round: Int) extends HeightAndRound(height, round) with Event
-case class TimeoutPropose(height: Long, round: Int) extends HeightAndRound(height, round) with Event
-case class TimeoutPrevotes(height: Long, round: Int) extends HeightAndRound(height, round) with Event
-case class TimeoutPrecommit(height: Long, round: Int) extends HeightAndRound(height, round) with Event
-  
+case class TimeoutPropose(height: Long, round: Int) extends HeightAndRound(height, round) with Timeout
+case class TimeoutPrevotes(height: Long, round: Int) extends HeightAndRound(height, round) with Timeout
+case class TimeoutPrecommit(height: Long, round: Int) extends HeightAndRound(height, round) with Timeout
+ 
