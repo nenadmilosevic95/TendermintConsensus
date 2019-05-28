@@ -2,7 +2,7 @@ package main.scala
 
 package object types {
 
-  type BlockID = Int
+  type BlockID = Option[Int]
 
   type RoundStep = Int
 
