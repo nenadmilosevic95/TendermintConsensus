@@ -78,4 +78,97 @@ class TestConsensus {
     assertTrue(result)
   }
 
+  @Test def eventMajority23PrevotesBlock {
+    val height = 5
+    val round = 4
+    val blockID = Some(5)
+    val event = Majority23PrevotesBlock(height, round, blockID)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrecommit, lockedValue, lockedRound, validValue, validRound, _, _), Some(MessageVote(_, _, _, Precommit)), _) if state.step == RoundStepPrevote => blockID.get == validValue.get && round == validRound && blockID.get == lockedValue.get && round == lockedRound
+      case (State(_, _, RoundStepPrecommit, _, _, validValue, validRound, _, _), None, _) if state.step == RoundStepPrecommit => blockID.get == validValue.get && round == validRound
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
+  @Test def eventMajority23PrevotesAny {
+    val height = 5
+    val round = 4
+    val event = Majority23PrevotesAny(height, round)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrevote(_, _)))) if state.step == RoundStepPrevote => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
+  @Test def eventTimeoutPrevote {
+    val height = 5
+    val round = 4
+    val event = TimeoutPrevote(height, round)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrecommit, _, _, _, _, _, _), Some(MessageVote(_, _, None, Precommit)), None) if state.step == RoundStepPrevote => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
+  @Test def eventMajority23PrecommitBlock {
+    val height = 5
+    val newHeight = height + 1
+    val round = 4
+    val event = Majority23PrecommitBlock(height, round, Some(5))
+    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (State(newHeight, _, _, _, _, _, _, _, _), None, None) => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
+  @Test def eventMajority23PrecommitAny {
+    val height = 5
+    val round = 4
+    val event = Majority23PrecommitAny(height, round)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrecommit(_, _)))) => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
+  @Test def eventTimeoutPrecommit {
+    val height = 5
+    val round = 4
+    val newRound = round + 1
+    val event = TimeoutPrecommit(height, round)
+    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0)
+
+    val result = consensus.consensus(event, state) match {
+      case (State(_, newRound, _, _, _, _, _, _, _), None, None) => true
+      case (state, None, None) => true
+      case _ => false
+    }
+
+    assertTrue(result)
+  }
+
 }
