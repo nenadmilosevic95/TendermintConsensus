@@ -8,6 +8,16 @@ object consensus {
 
   def proposer(height: Long, round: Int): Int = 2
 
+  def handle(message: Message, state: State): Option[Event] = {
+    //message match {
+    //case MessageProposal() => None
+    //  case MessageVote() => None
+    //  case MessageDecision() => None
+    // }
+    println("Obradio poruku!")
+    None
+  }
+
   def consensus(event: Event, state: State): (State, Option[Message], Option[TriggerTimeout]) = {
     event match {
       case EventNewHeight(height, validatorId) => {
