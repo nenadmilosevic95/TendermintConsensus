@@ -8,13 +8,9 @@ object consensus {
 
   def proposer(height: Long, round: Int): Int = 2
 
-  def handle(message: Message, state: State): Option[Event] = {
-    //message match {
-    //case MessageProposal() => None
-    //  case MessageVote() => None
-    //  case MessageDecision() => None
-    // }
-    println("Obradio poruku!")
+  def getQuorumNumber(messageType: Int): Int = 5
+
+  def handle(messages: List[Message], state: State): Option[Event] = {
     None
   }
 

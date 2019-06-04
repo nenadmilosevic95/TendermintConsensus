@@ -6,8 +6,8 @@ import main.scala.net._
 
 object executor extends App {
 
-  val messageBuffer = new LinkedBlockingQueue[Message]();
-
+  val messageBuffer = new LinkedBlockingQueue[Message]()
+  
   val netSimulatorThread = new Thread {
     override def run {
       netSimulator.startNet(messageBuffer)
