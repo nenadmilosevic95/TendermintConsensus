@@ -5,7 +5,7 @@ import org.junit.Assert._
 
 import main.scala.types._
 import main.scala.consensus._
-import main.scala.consensus.consensus
+import main.scala.consensus.Consensus
 
 class TestConsensus {
 
@@ -14,9 +14,9 @@ class TestConsensus {
     val currentHeight = 4
     val validatorId: Int = 3
     val event = EventNewHeight(height, validatorId)
-    val state = State(currentHeight, -1, RoundStepPropose, None, -1, None, -1, 5, 0)
+    val state = State(currentHeight, -1, RoundStepPropose, None, -1, None, -1, 5, 0, None)
 
-    val result = consensus.consensus(event, state) match {
+    val result = Consensus.consensus(event, state) match {
       case (newState, None, None) if height > currentHeight => (newState.height == height) && (newState.validatorID == validatorId)
       case (oldState, None, None) => (oldState.height == currentHeight)
       case _ => false
@@ -30,10 +30,10 @@ class TestConsensus {
     val newRound = 4
     val currentRound = newRound - 1
     val event = EventNewRound(height, newRound)
-    val state = State(height, currentRound, RoundStepPropose, None, -1, None, -1, 2, 0)
-    val newState = State(height, newRound, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize)
+    val state = State(height, currentRound, RoundStepPropose, None, -1, None, -1, 2, 0, None)
+    val newState = State(height, newRound, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, None)
 
-    val result = consensus.consensus(event, state) match {
+    val result = Consensus.consensus(event, state) match {
       case (newState, Some(MessageProposal(_, _, _, _)), Some(TriggerTimeout(_, _, _, TimeoutPropose(_, _)))) if currentRound < newRound => true
       case (state, None, None) if currentRound >= newRound => true
       case _ => false
@@ -46,16 +46,16 @@ class TestConsensus {
     val height = 5
     val round = 4
     val polRound = 2
-    val event = EventProposal(height, round, 5, Some(5), polRound, 2)
-    val state = State(height, round, RoundStepPropose, None, -1, None, -1, 2, 0)
+    val event = EventProposal(height, round, 5, Some("3"), polRound, 2)
+    val state = State(height, round, RoundStepPropose, None, -1, None, -1, 2, 0, None)
 
     def checkFunction(): Boolean = {
-      polRound >= state.lockedRound || event.blockID.get == state.lockedValue.get || state.lockedRound == -1
+      polRound >= state.lockedRound || event.proposal.get == state.lockedValue.get || state.lockedRound == -1
     }
 
-    val result = consensus.consensus(event, state) match {
-      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _), Some(MessageVote(_, _, Some(value), Prevote)), _) if checkFunction() => true
-      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _), Some(MessageVote(_, _, None, Prevote)), _) if !checkFunction() => true
+    val result = Consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _,_), Some(MessageVote(_, _, Some(value), Prevote)), _) if checkFunction() => true
+      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _,_), Some(MessageVote(_, _, None, Prevote)), _) if !checkFunction() => true
       case (state, None, None) => true
       case _ => false
     }
@@ -67,10 +67,10 @@ class TestConsensus {
     val height = 5
     val round = 4
     val event = TimeoutPropose(height, round)
-    val state = State(height, round, RoundStepPropose, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPropose, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
-      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _), Some(MessageVote(_, _, None, Prevote)), _) => true
+    val result = Consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrevote, _, _, _, _, _, _,_), Some(MessageVote(_, _, None, Prevote)), _) => true
       case (state, None, None) => true
       case _ => false
     }
@@ -81,13 +81,13 @@ class TestConsensus {
   @Test def eventMajority23PrevotesBlock {
     val height = 5
     val round = 4
-    val blockID = Some(5)
+    val blockID = Some("5")
     val event = Majority23PrevotesBlock(height, round, blockID)
-    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
-      case (State(_, _, RoundStepPrecommit, lockedValue, lockedRound, validValue, validRound, _, _), Some(MessageVote(_, _, _, Precommit)), _) if state.step == RoundStepPrevote => blockID.get == validValue.get && round == validRound && blockID.get == lockedValue.get && round == lockedRound
-      case (State(_, _, RoundStepPrecommit, _, _, validValue, validRound, _, _), None, _) if state.step == RoundStepPrecommit => blockID.get == validValue.get && round == validRound
+    val result = Consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrecommit, lockedValue, lockedRound, validValue, validRound, _, _,_), Some(MessageVote(_, _, _, Precommit)), _) if state.step == RoundStepPrevote => blockID.get == validValue.get && round == validRound && blockID.get == lockedValue.get && round == lockedRound
+      case (State(_, _, RoundStepPrecommit, _, _, validValue, validRound, _, _,_), None, _) if state.step == RoundStepPrecommit => blockID.get == validValue.get && round == validRound
       case _ => false
     }
 
@@ -98,9 +98,9 @@ class TestConsensus {
     val height = 5
     val round = 4
     val event = Majority23PrevotesAny(height, round)
-    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
+    val result = Consensus.consensus(event, state) match {
       case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrevote(_, _)))) if state.step == RoundStepPrevote => true
       case (state, None, None) => true
       case _ => false
@@ -113,10 +113,10 @@ class TestConsensus {
     val height = 5
     val round = 4
     val event = TimeoutPrevote(height, round)
-    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
-      case (State(_, _, RoundStepPrecommit, _, _, _, _, _, _), Some(MessageVote(_, _, None, Precommit)), None) if state.step == RoundStepPrevote => true
+    val result = Consensus.consensus(event, state) match {
+      case (State(_, _, RoundStepPrecommit, _, _, _, _, _, _,_), Some(MessageVote(_, _, None, Precommit)), None) if state.step == RoundStepPrevote => true
       case (state, None, None) => true
       case _ => false
     }
@@ -128,11 +128,11 @@ class TestConsensus {
     val height = 5
     val newHeight = height + 1
     val round = 4
-    val event = Majority23PrecommitBlock(height, round, Some(5))
-    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0)
+    val event = Majority23PrecommitBlock(height, round, Some("5"))
+    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
-      case (State(newHeight, _, _, _, _, _, _, _, _), None, None) => true
+    val result = Consensus.consensus(event, state) match {
+      case (State(newHeight, _, _, _, _, _, _, _, _,_), None, None) => true
       case (state, None, None) => true
       case _ => false
     }
@@ -144,9 +144,9 @@ class TestConsensus {
     val height = 5
     val round = 4
     val event = Majority23PrecommitAny(height, round)
-    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
+    val result = Consensus.consensus(event, state) match {
       case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrecommit(_, _)))) => true
       case (state, None, None) => true
       case _ => false
@@ -160,10 +160,10 @@ class TestConsensus {
     val round = 4
     val newRound = round + 1
     val event = TimeoutPrecommit(height, round)
-    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0)
+    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0, None)
 
-    val result = consensus.consensus(event, state) match {
-      case (State(_, newRound, _, _, _, _, _, _, _), None, None) => true
+    val result = Consensus.consensus(event, state) match {
+      case (State(_, newRound, _, _, _, _, _, _, _,_), None, None) => true
       case (state, None, None) => true
       case _ => false
     }

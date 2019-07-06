@@ -1,13 +1,13 @@
 package main.scala.types
 
 case class State(
-  height:           Long,
+  height:           Int,
   round:            Int,
   step:             RoundStep,
-  lockedValue:      BlockID,
+  lockedValue:      Block,
   lockedRound:      Int,
-  validValue:       BlockID,
+  validValue:       Block,
   validRound:       Int,
   validatorID:      Int,
-  validatorSetSize: Int)
-
+  validatorSetSize: Int,
+  proposal:         Block)

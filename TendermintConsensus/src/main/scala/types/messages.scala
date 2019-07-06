@@ -5,7 +5,7 @@ trait Message
 case class MessageProposal(
   height:   Long,
   round:    Int,
-  blockID:  BlockID,
+  block:  Block,
   polRound: Int) extends Message
 
 case class MessageVote(
@@ -14,10 +14,7 @@ case class MessageVote(
   blockID:  BlockID,
   voteType: VoteType) extends Message
 
-case class MessageDecision(
-  height:  Long,
-  round:   Int,
-  blockID: BlockID) extends Message
+
 
 
 

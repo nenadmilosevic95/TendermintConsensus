@@ -2,7 +2,10 @@ package main.scala
 
 package object types {
 
-  type BlockID = Option[Int]
+  val NumberOfValidators = 4
+ 
+  type BlockID = Option[String]
+  type Block = Option[String]
 
   type RoundStep = Int
 
@@ -25,5 +28,7 @@ package object types {
   val TimeoutProposeDuration: Duration = 5
   val TimeoutPrevoteDuration: Duration = 5
   val TimeoutPrecommitDuration: Duration = 5
+
+ 
 
 }
