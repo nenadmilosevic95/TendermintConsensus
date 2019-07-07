@@ -8,33 +8,25 @@ object Consensus {
 
   def getValue(): Block = Some(Random.alphanumeric.take(100).mkString)
 
-  var counter:Int = -1
-  
+  var counter: Int = -1
+
   def proposer(height: Int, round: Int): Int = {
     counter = counter + 1
     (height + round + counter) % NumberOfValidators
   }
 
-  def getQuorumNumber(message: Message): Int = 5
-
-  def handle(messages: List[Message], state: State): Option[Event] = {
-    None
-  }
-
-  def checkMessage(message: Message, state: State) = {
-
-  }
-
-  def consensus(event: Event, state: State): (State, Option[Message], Option[TriggerTimeout]) = {
+  def consensus(event: Event, state: State): (State, Option[Message], Option[TriggerTimeout], Option[Event]) = {
+    println(event)
     event match {
       case EventNewHeight(height, validatorId) => {
         def checkEventValidity(): Boolean = height > state.height
 
         if (checkEventValidity()) {
+          counter = -1
           val newState = State(height, -1, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, validatorId, state.validatorSetSize, None)
-          (newState, None, None)
+          (newState, None, None, Some(EventNewRound(newState.height, 0)))
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case EventNewRound(height, round) => {
@@ -43,28 +35,28 @@ object Consensus {
         if (checkEventValidity()) {
           val (newMessage: Option[MessageProposal], proposal: Block) = if (proposer(height, round) == state.validatorID) {
             val proposalValue = if (state.validValue != None) state.validValue else getValue()
-            (Some(MessageProposal(height, round, proposalValue, -1)), proposalValue)
+            (Some(MessageProposal(height, round, proposalValue, -1,state.validatorID)), proposalValue)
           } else (None, None)
           val newState = State(height, round, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, proposal)
           val newTimeout = TriggerTimeout(height, round, TimeoutProposeDuration, TimeoutPropose(height, round))
-          (newState, newMessage, Some(newTimeout))
+          (newState, newMessage, Some(newTimeout), None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case EventProposal(height, round, _, proposal, polRound, sender) => {
         def checkEventValidity(): Boolean = height == state.height && round == state.round && sender == proposer(height, round) && state.step == RoundStepPropose
 
         if (checkEventValidity()) {
-          val newState = State(height, round, RoundStepPrevote, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize,proposal)
+          val newState = State(height, round, RoundStepPrevote, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, proposal)
           val newMessage = if (polRound >= state.lockedRound || proposal.get == state.lockedValue.get || state.lockedRound == -1) {
-            MessageVote(height, round, Some(util.md5HashString(proposal.get)) , Prevote)
+            MessageVote(height, round, Some(util.md5HashString(proposal.get)), Prevote,state.validatorID)
           } else {
-            MessageVote(height, round, None, Prevote)
+            MessageVote(height, round, None, Prevote,state.validatorID)
           }
-          (newState, Some(newMessage), None)
+          (newState, Some(newMessage), None, None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
 
       }
@@ -72,11 +64,11 @@ object Consensus {
         def checkEventValidity(): Boolean = height == state.height && round == state.round && state.step == RoundStepPropose
 
         if (checkEventValidity()) {
-          val newMessage = MessageVote(height, round, None, Prevote)
-          val newState = State(height, round, RoundStepPrevote, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize,state.proposal)
-          (newState, Some(newMessage), None)
+          val newMessage = MessageVote(height, round, None, Prevote,state.validatorID)
+          val newState = State(height, round, RoundStepPrevote, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, Some(newMessage), None, None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case Majority23PrevotesBlock(height, round, blockID) => {
@@ -84,14 +76,14 @@ object Consensus {
 
         if (checkEventValidity()) {
           val (lockedRound, lockedValue, message) = if (state.step == RoundStepPrevote) {
-            (round, blockID, Some(MessageVote(height, round, blockID, Precommit)))
+            (round, blockID, Some(MessageVote(height, round, blockID, Precommit,state.validatorID)))
           } else {
             (state.lockedRound, state.lockedValue, None)
           }
-          val newState = State(height, round, RoundStepPrecommit, lockedValue, lockedRound, state.proposal, round, state.validatorID, state.validatorSetSize,state.proposal)
-          (newState, message, None)
+          val newState = State(height, round, RoundStepPrecommit, lockedValue, lockedRound, state.proposal, round, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, message, None, None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case Majority23PrevotesAny(height, round) => {
@@ -99,30 +91,30 @@ object Consensus {
 
         if (checkEventValidity()) {
           val timeout = TriggerTimeout(height, round, TimeoutPrevoteDuration, TimeoutPrevote(height, round))
-          (state, None, Some(timeout))
+          (state, None, Some(timeout), None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case TimeoutPrevote(height, round) => {
         def checkEventValidity(): Boolean = height == state.height && round == state.round && state.step == RoundStepPrevote
 
         if (checkEventValidity()) {
-          val message = MessageVote(height, round, None, Precommit)
-          val newState = State(state.height, state.round, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize,state.proposal)
-          (newState, Some(message), None)
+          val message = MessageVote(height, round, None, Precommit,state.validatorID)
+          val newState = State(state.height, state.round, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, Some(message), None, None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case Majority23PrecommitBlock(height, round, blockID) => {
         def checkEventValidity(): Boolean = height == state.height
 
         if (checkEventValidity()) {
-          val newState = State(state.height + 1, state.round, RoundStepCommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize,state.proposal)
-          (newState, None, None)
+          val newState = State(state.height + 1, state.round, RoundStepCommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, None, None, Some(EventNewHeight(newState.height, newState.validatorID)))
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case Majority23PrecommitAny(height, round) => {
@@ -130,19 +122,19 @@ object Consensus {
 
         if (checkEventValidity()) {
           val timeout = TriggerTimeout(height, round, TimeoutPrecommitDuration, TimeoutPrecommit(height, round))
-          (state, None, Some(timeout))
+          (state, None, Some(timeout), None)
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
       case TimeoutPrecommit(height, round) => {
         def checkEventValidity(): Boolean = height == state.height && round == state.round
 
         if (checkEventValidity()) {
-          val newState = State(state.height, state.round + 1, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize,state.proposal)
-          (newState, None, None)
+          val newState = State(state.height, state.round + 1, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, None, None, Some(EventNewRound(newState.height, newState.round)))
         } else {
-          (state, None, None)
+          (state, None, None, None)
         }
       }
     }

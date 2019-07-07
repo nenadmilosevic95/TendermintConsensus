@@ -25,9 +25,9 @@ package object types {
 
   type Duration = Long
 
-  val TimeoutProposeDuration: Duration = 5
-  val TimeoutPrevoteDuration: Duration = 5
-  val TimeoutPrecommitDuration: Duration = 5
+  val TimeoutProposeDuration: Duration = 2000
+  val TimeoutPrevoteDuration: Duration = 2000
+  val TimeoutPrecommitDuration: Duration = 2000
 
  
 
