@@ -14,7 +14,7 @@ class ExecutorCore extends Actor {
 
   def receive() = {
     case message: MessageProposal if (message.height >= state.height) => {
-      println(message)
+      println("Received: " + message)
       val height = message.height
       val round = message.round
       if (!proposals.contains(height)) proposals(height) = HashMap.empty[Int, Block]
@@ -27,7 +27,7 @@ class ExecutorCore extends Actor {
       runConsensus(event)
     }
     case message: MessageVote if (message.height >= state.height) => {
-      println(message)
+      println("Received: " + message)
       val height = message.height
       val round = message.round
       if (!votes.contains(height)) votes(height) = HashMap.empty[Int, VoteSet]

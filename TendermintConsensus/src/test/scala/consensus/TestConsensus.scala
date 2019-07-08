@@ -1,4 +1,4 @@
-package types
+package consensus
 
 import org.junit._
 import org.junit.Assert._

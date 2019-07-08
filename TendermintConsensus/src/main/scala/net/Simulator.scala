@@ -9,7 +9,9 @@ import main.scala.types._
 import main.scala.consensus.util
 
 object Simulator extends App {
-
+  
+  
+  
   {
     sendMessages()
   }
@@ -25,7 +27,7 @@ object Simulator extends App {
 
   class NetSimulator extends Actor {
     def receive() = {
-      case m: Message => println(m)
+      case m: Message => println("Sent: " + m)
     }
   }
 }
