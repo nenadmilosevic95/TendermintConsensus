@@ -37,7 +37,7 @@ class ExecutorCore extends Actor {
       runConsensus(event)
     }
     case t: Timeout => {
-      println(t)
+      //println(t)
       runConsensus(Some(t))
     }
   }

@@ -10,11 +10,6 @@ object Consensus {
 
   var counter: Int = -1
   
-  //just for testing
-  var currentHeight = 0
-  var currentRound = 0
-  var currentRoundStep:RoundStep = RoundStepUnknown
-  //
   def proposer(height: Int, round: Int): Int = {
     counter = counter + 1
     (height + round + counter) % NumberOfValidators
@@ -28,7 +23,7 @@ object Consensus {
 
         if (checkEventValidity()) {
           counter = -1
-          currentHeight = height
+         
           val newState = State(height, -1, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, validatorId, state.validatorSetSize, None)
           (newState, None, None, Some(EventNewRound(newState.height, 0)))
         } else {
@@ -43,7 +38,7 @@ object Consensus {
             val proposalValue = if (state.validValue != None) state.validValue else getValue()
             (Some(MessageProposal(height, round, proposalValue, -1,state.validatorID)), proposalValue)
           } else (None, None)
-          currentRound = round
+          
           val newState = State(height, round, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, proposal)
           val newTimeout = TriggerTimeout(height, round, TimeoutProposeDuration, TimeoutPropose(height, round))
           (newState, newMessage, Some(newTimeout), None)
