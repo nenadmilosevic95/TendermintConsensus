@@ -34,12 +34,12 @@ object Consensus {
         def checkEventValidity(): Boolean = height == state.height && round > state.round
 
         if (checkEventValidity()) {
-          val (newMessage: Option[MessageProposal], proposal: Block) = if (proposer(height, round) == state.validatorID) {
+          val (newMessage: Option[MessageProposal], proposal: Block, step: RoundStep) = if (proposer(height, round) == state.validatorID) {
             val proposalValue = if (state.validValue != None) state.validValue else getValue()
-            (Some(MessageProposal(height, round, proposalValue, -1,state.validatorID)), proposalValue)
-          } else (None, None)
+            (Some(MessageProposal(height, round, proposalValue, -1,state.validatorID)), proposalValue,RoundStepPrevote)
+          } else (None, None,RoundStepPropose)
           
-          val newState = State(height, round, RoundStepPropose, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, proposal)
+          val newState = State(height, round, step, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, proposal)
           val newTimeout = TriggerTimeout(height, round, TimeoutProposeDuration, TimeoutPropose(height, round))
           (newState, newMessage, Some(newTimeout), None)
         } else {
