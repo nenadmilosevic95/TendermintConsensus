@@ -37,9 +37,10 @@ class TestExecutor {
 
     Actors.executorCore ! MessageVote(height, round, None, Prevote, 0)
     Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
-
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Thread.sleep(2000)
+    Actors.executorCore ! MessageVote(height, round, None, Precommit, 0)
+    Actors.executorCore ! MessageVote(height, round, None, Precommit, 2)
+    Actors.executorCore ! MessageVote(height, round, None, Precommit, 3)
 
     Thread.sleep(2000)
     println("--------------------------------------------------------------------------------------------")

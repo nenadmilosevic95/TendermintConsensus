@@ -148,10 +148,21 @@ class TestConsensus {
 
     val result = Consensus.consensus(event, state) match {
       case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrecommit(_, _))),_) => true
-      case (state, None, None,_) => true
       case _ => false
     }
+    assertTrue(result)
+  }
+  
+  @Test def eventMajority23PrecommitAnyAnd23PrecommitBlock {
+    val height = 5
+    val round = 4
+    val event = Majority23PrecommitAny(height, round)
+    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
 
+    val result = Consensus.consensus(event, state) match {
+      case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrecommit(_, _))),_) => true
+      case _ => false
+    }
     assertTrue(result)
   }
 
