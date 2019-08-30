@@ -133,8 +133,8 @@ object Consensus {
         def checkEventValidity(): Boolean = height == state.height && round == state.round
 
         if (checkEventValidity()) {
-          val newState = State(state.height, state.round + 1, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
-          (newState, None, None, Some(EventNewRound(newState.height, newState.round)))
+          val newState = State(state.height, state.round, RoundStepPrecommit, state.lockedValue, state.lockedRound, state.validValue, state.validRound, state.validatorID, state.validatorSetSize, state.proposal)
+          (newState, None, None, Some(EventNewRound(state.height, state.round + 1)))
         } else {
           (state, None, None, None)
         }
