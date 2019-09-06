@@ -6,6 +6,7 @@ import net.Simulator.NetSimulator
 
 object Actors {
   val system = ActorSystem("System")
-  val executorCore = system.actorOf(Props[ExecutorCore], "executorCore")
+  val messageReceiver = system.actorOf(Props[executor.MessageReceiver], "messageReceiver")
+  val eventHandler = system.actorOf(Props[executor.EventHandler], "eventHandler")
   val netSimulator = system.actorOf(Props[NetSimulator], "netSimulator")
 }

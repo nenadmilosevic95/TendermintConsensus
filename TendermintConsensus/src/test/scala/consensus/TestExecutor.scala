@@ -15,13 +15,14 @@ class TestExecutor {
 
     println("***Perfect scenarion!***")
 
-    Actors.executorCore ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
+    Actors.messageReceiver ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
 
     Thread.sleep(2000)
     println("--------------------------------------------------------------------------------------------")
@@ -33,14 +34,14 @@ class TestExecutor {
 
     println("***Not enough prevotes received!***")
 
-    Actors.executorCore ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
+    Actors.messageReceiver ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
 
-    Actors.executorCore ! MessageVote(height, round, None, Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
     Thread.sleep(2000)
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 2)
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 3)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 3)
 
     Thread.sleep(2000)
     println("--------------------------------------------------------------------------------------------")
@@ -52,13 +53,13 @@ class TestExecutor {
 
     println("***Not enough precommits received!***")
 
-    Actors.executorCore ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
+    Actors.messageReceiver ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
 
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
 
     Thread.sleep(4000)
     println("--------------------------------------------------------------------------------------------")
@@ -70,17 +71,17 @@ class TestExecutor {
 
     println("***Making decision in second round***")
 
-    Actors.executorCore ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
+    Actors.messageReceiver ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
 
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
 
     Thread.sleep(4000)
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 0)
 
     Thread.sleep(2000)
     println("--------------------------------------------------------------------------------------------")
@@ -92,11 +93,11 @@ class TestExecutor {
 
     println("***No Proposal Message Received***")
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
 
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
 
     Thread.sleep(2000)
     println("--------------------------------------------------------------------------------------------")
@@ -108,15 +109,15 @@ class TestExecutor {
 
     println("***Faulty process***")
 
-    Actors.executorCore ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
+    Actors.messageReceiver ! MessageProposal(height, round, Some("Poruka 1"), -1, 0)
 
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 2")), Prevote, 0)
-    Actors.executorCore ! MessageVote(height, round, None, Prevote, 1)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 2")), Prevote, 0)
+    Actors.messageReceiver ! MessageVote(height, round, None, Prevote, 1)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Prevote, 2)
 
-    Actors.executorCore ! MessageVote(height, round, None, Precommit, 1)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 2")), Precommit, 0)
-    Actors.executorCore ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
+    Actors.messageReceiver ! MessageVote(height, round, None, Precommit, 1)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 2")), Precommit, 0)
+    Actors.messageReceiver ! MessageVote(height, round, Some(util.md5HashString("Poruka 1")), Precommit, 2)
 
     Thread.sleep(8000)
     println("--------------------------------------------------------------------------------------------")
