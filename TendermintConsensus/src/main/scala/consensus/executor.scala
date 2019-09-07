@@ -75,7 +75,7 @@ object executor {
         state = newState
 
         if (newMessage != None) {
-          Actors.netSimulator ! newMessage.get
+          Actors.messageSender ! newMessage.get
         }
 
         if (newTimeout != None) {
@@ -85,6 +85,12 @@ object executor {
 
         runConsensus(newEvent)
       }
+    }
+  }
+  
+  class MessageSender extends Actor {
+    def receive() = {
+      case m: Message => println("Sent: " + m)
     }
   }
 }

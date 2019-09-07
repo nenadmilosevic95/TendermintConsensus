@@ -25,9 +25,5 @@ object Simulator extends App {
     Actors.messageReceiver ! MessageVote(0, 0, Some(util.md5HashString("Poruka 1")), Precommit, 2)
   }
 
-  class NetSimulator extends Actor {
-    def receive() = {
-      case m: Message => println("Sent: " + m)
-    }
-  }
+  
 }
