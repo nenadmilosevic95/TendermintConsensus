@@ -16,7 +16,7 @@ object executor {
 
     def receive() = {
       case message: MessageProposal if (message.height >= state.height) => {
-        println("Received: " + message)
+        //println("Received: " + message)
         val height = message.height
         val round = message.round
         if (!proposals.contains(height)) proposals(height) = HashMap.empty[Int, Block]
@@ -69,7 +69,7 @@ object executor {
 
     def runConsensus(event: Option[Event]) {
       if (event != None) {
-        println("OVDE" + event)
+        //println("OVDE" + event)
         val (newState, newMessage, newTimeout, newEvent) = Consensus.consensus(event.get, state)
 
         state = newState
