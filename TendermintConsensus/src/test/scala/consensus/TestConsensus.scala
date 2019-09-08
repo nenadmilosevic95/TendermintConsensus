@@ -254,17 +254,32 @@ class TestConsensus {
     // проверава се резултат
     assertTrue(result)
   }
-
+  
+  
+  // тестирање пријема Majority23PrecommitAny и након тога 
+  // пријема Majority23PrecommitBlock догађаја
   @Test def eventMajority23PrecommitAnyAnd23PrecommitBlock {
     val height = 5
     val round = 4
+    // креира се иницијално стање
+    val state = State(height, round, RoundStepPrecommit, None, -1, None, -1, 2, 0, Some("5"))
+    // креира се први догађај
     val event = Majority23PrecommitAny(height, round)
-    val state = State(height, round, RoundStepPrevote, None, -1, None, -1, 2, 0, None)
-
-    val result = Consensus.consensus(event, state) match {
+    // покреће се консензус
+    var result = Consensus.consensus(event, state) match {
       case (state, None, Some(TriggerTimeout(_, _, _, TimeoutPrecommit(_, _))), _) => true
       case _ => false
     }
+    //проверава се први део теста
+    assertTrue(result)
+    // креира се други догађај
+    val secondEvent = Majority23PrecommitBlock(height, round,Some("5"))
+    // покреће се консензус
+    result = Consensus.consensus(secondEvent, state) match {
+      case (newState, None, None, Some(EventNewHeight(6, _))) => true
+      case _ => false
+    }
+    // проверава се други део теста
     assertTrue(result)
   }
 
